@@ -13,22 +13,32 @@ def main():
     reset_mapdl(mapdl)
 
     # create geometry for beam
-    create_geometry_v1(mapdl)
-    plot_geometry(mapdl)
+    create_geometry_v1(mapdl, segments=77)  # crash for segments > 77
+
+    #plot_geometry(mapdl)
     # set E and Poisson ratio
     set_material(mapdl)
 
     # set bounding conditions
-    set_bounding_conditions_v1(mapdl)
+    set_boundary_conditions_v1(mapdl)
 
+    mapdl.slashsolu()
+    mapdl.antype("static")
+    mapdl.solve()
+    mapdl.post1()
 
+    plot_results(mapdl)
 
-    # mapdl.nplot(cpos="xy")  # crash: no nodes to plot (fix: #423)
-    # mapdl.kplot(cpos="xy")
-    # mapdl.lplot(cpos="xy")
-    # mapdl.aplot()  # screenshot=True)
-    # mapdl.eplot()
-
+    # mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy")#.plot_nodal_displacement(0)
+    # mapdl.result.plot_nodal_stress(0, comp="X", show_displacement=True, cpos="xy")#.plot_nodal_displacement(0)
+    #
+    # mapdl.result.plot_nodal_solution(0, comp='norm', show_displacement=True, lighting=False,
+    #                                               background='w', text_color='k', show_edges=True, cpos='xy',
+    #                                               add_text=False)
+    #
+    #
+    # mapdl.result.plot_nodal_displacement(0, show_displacement=True, cpos="xy")
+    # mapdl.result.p
     mapdl.exit()
     return
 
@@ -47,7 +57,7 @@ class Beam:  # using a class makes it easier and saver to acces values compared 
 
     # element type
     et_num = 1
-    et = "plane182"
+    et = "plane183"
 
     # material number
     mat_num = 1
@@ -72,7 +82,7 @@ def create_geometry_v1(mapdl: MapdlCorba, width=Beam.w, height=Beam.h, segments=
 def plot_geometry(mapdl: MapdlCorba, theme="document"):
     pv.set_plot_theme(theme)
     plotter = pv.Plotter(shape=(2, 2))
-    mapdl.nplot(plotter=plotter, color='')
+    mapdl.nplot(plotter=plotter, knum=True, color='')
     plotter.subplot(0, 1)
     mapdl.lplot(plotter=plotter, color='')#color_lines=True) # color="#000000")
     plotter.subplot(1, 0)
@@ -84,14 +94,45 @@ def plot_geometry(mapdl: MapdlCorba, theme="document"):
     plotter.screenshot(f'multiplot_example')
     return
 
+
+def plot_results(mapdl: MapdlCorba, theme="document"):
+    pv.set_plot_theme(theme)
+    plotter = pv.Plotter(shape=(2, 2))
+    mapdl.result.plot_nodal_stress(0, comp="x", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)#.plot_nodal_displacement(0)
+    plotter.subplot(0, 1)
+    mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)#.plot_nodal_displacement(0)
+    plotter.subplot(1, 0)
+    mapdl.result.plot_nodal_solution(0, comp='norm', show_displacement=True, lighting=False,
+                                                  background='w', text_color='k', show_edges=True, cpos='xy',
+                                                  add_text=False, plotter=plotter)
+    plotter.subplot(1, 1)
+    mapdl.result.plot_nodal_solution(0, comp='x', show_displacement=True, lighting=False,
+                                                  background='w', text_color='k', show_edges=True, cpos='xy',
+                                                  add_text=False, plotter=plotter)
+
+    # mapdl.result.plot_nodal_displacement(0, show_displacement=True, cpos="xy")
+
+    plotter.link_views()
+    plotter.show(screenshot=True)
+    plotter.screenshot(f'multiplot_results')
+    return
+
+
 def set_material(mapdl: MapdlCorba):
     mapdl.prep7()
     mapdl.mp("ex", mat=Beam.mat_num, c0=Beam.E)
     mapdl.mp("nuxy", Beam.mat_num, c0=Beam.pr)
 
 
-def set_bounding_conditions_v1(mapdl: MapdlCorba):
-    pass
+def set_boundary_conditions_v1(mapdl: MapdlCorba):
+    mapdl.nsel(item="loc", comp="x", vmin=0)
+    mapdl.d("all", "all")
+
+    mapdl.nsel(item="loc", comp="x", vmin=Beam.w)
+    mapdl.nsel("r", item="loc", comp="y", vmin=0)
+    # mapdl.nplot(knum=True, cpos='xy', color='')
+
+    mapdl.f("all", "fy", 40e7)
 
 
 if __name__ == '__main__':
