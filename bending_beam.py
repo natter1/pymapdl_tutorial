@@ -29,22 +29,8 @@ def main():
 
     plot_results(mapdl)
 
-    # mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy")#.plot_nodal_displacement(0)
-    # mapdl.result.plot_nodal_stress(0, comp="X", show_displacement=True, cpos="xy")#.plot_nodal_displacement(0)
-    #
-    # mapdl.result.plot_nodal_solution(0, comp='norm', show_displacement=True, lighting=False,
-    #                                               background='w', text_color='k', show_edges=True, cpos='xy',
-    #                                               add_text=False)
-    #
-    #
-    # mapdl.result.plot_nodal_displacement(0, show_displacement=True, cpos="xy")
-    # mapdl.result.p
     mapdl.exit()
     return
-
-    plot: Plotter = mapdl.aplot(show_lines=True, line_width=5, show_bounds=True, cpos='xy')
-    print(plot)
-
 
 
 class Beam:  # using a class makes it easier and saver to acces values compared to global variables
@@ -98,10 +84,9 @@ def plot_geometry(mapdl: MapdlCorba, theme="document"):
 def plot_results(mapdl: MapdlCorba, theme="document"):
     pv.set_plot_theme(theme)
     plotter = pv.Plotter(shape=(2, 2))
-    mapdl.result.plot_nodal_stress(0, comp="x", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)#.plot_nodal_displacement(0)
+    mapdl.result.plot_nodal_stress(0, comp="x", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)
     plotter.subplot(0, 1)
-    mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)#.plot_nodal_displacement(0)
-    plotter.subplot(1, 0)
+    mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)
     mapdl.result.plot_nodal_solution(0, comp='norm', show_displacement=True, lighting=False,
                                                   background='w', text_color='k', show_edges=True, cpos='xy',
                                                   add_text=False, plotter=plotter)
