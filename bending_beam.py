@@ -1,7 +1,6 @@
 import pyvista as pv
 from ansys.mapdl.core import launch_mapdl
 from ansys.mapdl.core.mapdl_corba import MapdlCorba  # used as TypeHint to enable code insight
-from pyvista import Plotter
 
 
 def main():
@@ -118,6 +117,14 @@ def set_boundary_conditions_v1(mapdl: MapdlCorba):
     # mapdl.nplot(knum=True, cpos='xy', color='')
 
     mapdl.f("all", "fy", 40e7)
+
+
+def beam_summary_string():
+    result = f"$h = {Beam.h}$ m  <br>" \
+             f"$w = {Beam.w}$ m<br>" \
+             f"$E = {Beam.E}$ Pa<br>" \
+             f"$\\nu = {Beam.pr}$"
+    return result
 
 
 if __name__ == '__main__':
