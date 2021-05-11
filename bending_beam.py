@@ -24,7 +24,6 @@ def main():
     mapdl.slashsolu()
     mapdl.antype("static")
     mapdl.solve()
-    mapdl.post1()
 
     plot_results(mapdl)
 
@@ -55,10 +54,17 @@ def reset_mapdl(mapdl: MapdlCorba):
     mapdl.clear()
 
 
-def create_geometry_v1(mapdl: MapdlCorba, width=Beam.w, height=Beam.h, segments=Beam.segments):
+def create_geometry_v1(mapdl: MapdlCorba, width=None, height=None, segments=None):
+    if width is None:
+        width = Beam.w
+    if height is None:
+        height = Beam.h
+    if segments is None:
+        segments = Beam.segments
+
     mapdl.prep7()
     mapdl.blc4(xcorner=0, ycorner=0, width=Beam.w, height=Beam.h)  # creates keypoints, lines, area but not nodes
-    mapdl.esize(size=min(width/segments, height/2))  # height/2 -> make sure, at least two segments along height
+    mapdl.esize(size=min(width/segments, height/2.0))  # height/2 -> make sure, at least two segments along height
     mapdl.et(itype=Beam.et_num, ename=Beam.et)
     mapdl.mat(Beam.mat_num)
     mapdl.amesh("all")
@@ -67,7 +73,7 @@ def create_geometry_v1(mapdl: MapdlCorba, width=Beam.w, height=Beam.h, segments=
 def plot_geometry(mapdl: MapdlCorba, theme="document"):
     pv.set_plot_theme(theme)
     plotter = pv.Plotter(shape=(2, 2))
-    mapdl.nplot(plotter=plotter, knum=True, color='')
+    mapdl.nplot(plotter=plotter, knum=False, color='')
     plotter.subplot(0, 1)
     mapdl.lplot(plotter=plotter, color='')#color_lines=True) # color="#000000")
     plotter.subplot(1, 0)
@@ -75,30 +81,36 @@ def plot_geometry(mapdl: MapdlCorba, theme="document"):
     plotter.subplot(1, 1)
     mapdl.eplot(plotter=plotter, color='')
     plotter.link_views()
-    plotter.show(screenshot=True)
-    plotter.screenshot(f'multiplot_example')
+    plotter.show()
+    # plotter.show(screenshot=True)
+    # plotter.screenshot(f'multiplot_example')
     return
 
 
 def plot_results(mapdl: MapdlCorba, theme="document"):
+    mapdl.post1()
     pv.set_plot_theme(theme)
     plotter = pv.Plotter(shape=(2, 2))
-    mapdl.result.plot_nodal_stress(0, comp="x", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)
+    mapdl.result.plot_nodal_stress(0, comp="x", show_displacement=True, cpos="xy", plotter=plotter, add_text=False,
+                                   title="Nodal stress X")
     plotter.subplot(0, 1)
-    mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy", plotter=plotter, add_text=False)
+    mapdl.result.plot_nodal_stress(0, comp="y", show_displacement=True, cpos="xy", plotter=plotter, add_text=False,
+                                   title="Nodal stress y")
+    plotter.subplot(1, 0)
     mapdl.result.plot_nodal_solution(0, comp='norm', show_displacement=True, lighting=False,
                                                   background='w', text_color='k', show_edges=True, cpos='xy',
-                                                  add_text=False, plotter=plotter)
+                                                  add_text=False, plotter=plotter, title="Displacement norm")
     plotter.subplot(1, 1)
     mapdl.result.plot_nodal_solution(0, comp='x', show_displacement=True, lighting=False,
                                                   background='w', text_color='k', show_edges=True, cpos='xy',
-                                                  add_text=False, plotter=plotter)
+                                                  add_text=False, plotter=plotter, title="Displacement X")
 
     # mapdl.result.plot_nodal_displacement(0, show_displacement=True, cpos="xy")
 
     plotter.link_views()
-    plotter.show(screenshot=True)
-    plotter.screenshot(f'multiplot_results')
+    plotter.show(full_screen=True)
+    #plotter.show(screenshot=True)
+    #plotter.screenshot(f'multiplot_results')
     return
 
 
@@ -108,7 +120,7 @@ def set_material(mapdl: MapdlCorba):
     mapdl.mp("nuxy", Beam.mat_num, c0=Beam.pr)
 
 
-def set_boundary_conditions_v1(mapdl: MapdlCorba):
+def set_boundary_conditions_v1(mapdl: MapdlCorba, force=40e7):
     mapdl.nsel(item="loc", comp="x", vmin=0)
     mapdl.d("all", "all")
 
@@ -116,13 +128,13 @@ def set_boundary_conditions_v1(mapdl: MapdlCorba):
     mapdl.nsel("r", item="loc", comp="y", vmin=0)
     # mapdl.nplot(knum=True, cpos='xy', color='')
 
-    mapdl.f("all", "fy", 40e7)
+    mapdl.f("all", "fy", force)
 
 
 def beam_summary_string():
-    result = f"$h = {Beam.h}$ m  <br>" \
-             f"$w = {Beam.w}$ m<br>" \
-             f"$E = {Beam.E}$ Pa<br>" \
+    result = f"$h = {Beam.h}$ m  <br>\n" \
+             f"$w = {Beam.w}$ m <br>\n" \
+             f"$E = {Beam.E}$ Pa <br>  "\
              f"$\\nu = {Beam.pr}$"
     return result
 
