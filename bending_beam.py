@@ -132,9 +132,10 @@ def set_boundary_conditions_v1(mapdl: MapdlCorba, force=40e7):
 
 
 def beam_summary_string():
-    result = f"$h = {Beam.h}$ m  <br>\n" \
-             f"$w = {Beam.w}$ m <br>\n" \
-             f"$E = {Beam.E}$ Pa <br>  "\
+    # \n\n\n to make new line work in nbconvert -> pdf
+    result = f"$h = {Beam.h}$ m  <br>\n\n\n  " \
+             f"$w = {Beam.w}$ m <br>\n\n\n  " \
+             f"$E = {Beam.E}$ Pa <br>\n\n\n  "\
              f"$\\nu = {Beam.pr}$"
     return result
 
