@@ -1,10 +1,11 @@
 import pyvista as pv
-from ansys.mapdl.core import launch_mapdl
+from ansys.mapdl.core import launch_mapdl, examples
 from ansys.mapdl.core.mapdl_corba import MapdlCorba  # used as TypeHint to enable code insight
 
 
 def main():
     mapdl = launch_mapdl()
+    examples.vmfiles
     print(mapdl)
     mapdl.units("SI")  # only for documentation - no influence on FEA
 
